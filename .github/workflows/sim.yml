@@ -1,0 +1,38 @@
+name: RTL simulation
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  cocotb:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Icarus Verilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run cocotb tests
+        run: pytest -v
+        env:
+          SIM: icarus
+
+      - name: Upload simulation results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sim-results
+          path: |
+            sim_build/**/results.xml
+            sim_build/**/*.fst
+            sim_build/**/*.vcd
+          if-no-files-found: ignore
